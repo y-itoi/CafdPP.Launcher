@@ -9,10 +9,11 @@
  * See http://www.lvr.com/winusb.htm for more information
  */
 
-using System;
 using Microsoft.Win32.SafeHandles;
-using System.Runtime.InteropServices;
+using System;
 using System.Collections.Generic;
+using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Threading;
 
 namespace MadWizard.WinUSBNet.API
@@ -97,11 +98,18 @@ namespace MadWizard.WinUSBNet.API
         private int ReadStringDescriptor( byte index, ushort languageID, byte[] buffer )
         {
             uint transfered;
-            bool success = WinUsb_GetDescriptor( _winUsbHandle, USB_STRING_DESCRIPTOR_TYPE,
-                        index, languageID, buffer, (uint)buffer.Length, out transfered );
-            if (!success)
-                throw APIException.Win32( "Failed to get USB string descriptor (" + index + ")." );
+            IntPtr ptr = Marshal.AllocHGlobal( buffer.Length );
+            try {
+                bool success = WinUsb_GetDescriptor( _winUsbHandle, USB_STRING_DESCRIPTOR_TYPE,
+                                    index, languageID, ptr, (uint)buffer.Length, out transfered );
+                if (!success)
+                    throw APIException.Win32( "Failed to get USB string descriptor (" + index + ")." );
 
+                Marshal.Copy( ptr, buffer, 0, buffer.Length );
+            }
+            finally {
+                Marshal.FreeHGlobal( ptr );
+            }
             if (transfered == 0)
                 throw new APIException( "No data returned when reading USB descriptor." );
 
@@ -185,10 +193,8 @@ namespace MadWizard.WinUSBNet.API
             return _addInterfaces[index - 1];
         }
 
-        public int InterfaceCount
-        {
-            get
-            {
+        public int InterfaceCount {
+            get {
                 return 1 + (_addInterfaces == null ? 0 : _addInterfaces.Length);
             }
         }
@@ -214,10 +220,7 @@ namespace MadWizard.WinUSBNet.API
         }
         private void InitializeDevice()
         {
-            bool success;
-
-            success = WinUsb_Initialize( _deviceHandle, ref _winUsbHandle );
-
+            bool success = WinUsb_Initialize( _deviceHandle, out _winUsbHandle );
             if (!success)
                 throw APIException.Win32( "Failed to initialize WinUSB handle. Device might not be connected." );
 
@@ -228,14 +231,16 @@ namespace MadWizard.WinUSBNet.API
             try {
                 while (true) {
                     IntPtr ifaceHandle = IntPtr.Zero;
-                    success = WinUsb_GetAssociatedInterface( _winUsbHandle, idx, out ifaceHandle );
-                    if (!success) {
-                        if (Marshal.GetLastWin32Error() == ERROR_NO_MORE_ITEMS)
+                    success = WinUsb_GetAssociatedInterface( _winUsbHandle, idx, ref ifaceHandle );
+
+                    var ecd = Marshal.GetLastWin32Error();
+                    if (!success && ecd != 0) {
+                        if (ecd == ERROR_NO_MORE_ITEMS)
                             break;
 
                         throw APIException.Win32( "Failed to enumerate interfaces for WinUSB device." );
                     }
-                    interfaces.Add( ifaceHandle );
+                    interfaces.Add( (IntPtr)ifaceHandle );
                     idx++;
                     numAddInterfaces++;
                 }
@@ -249,7 +254,7 @@ namespace MadWizard.WinUSBNet.API
             }
 
             // Bind handle (needed for overlapped I/O thread pool)
-            ThreadPool.BindHandle( _deviceHandle );
+            ThreadPoolBoundHandle.BindHandle( _deviceHandle );
             // TODO: bind interface handles as well? doesn't seem to be necessary
         }
 

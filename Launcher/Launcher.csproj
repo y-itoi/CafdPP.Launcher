@@ -7,6 +7,17 @@
 		<Nullable>enable</Nullable>
 		<Platforms>x64</Platforms>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		
+		<!--※AOT関連-->
+		<PublishAot>true</PublishAot>
+		<IsAotCompatible>true</IsAotCompatible>
+		<SuppressTrimAnalysisWarnings>false</SuppressTrimAnalysisWarnings>
+		<JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
+		<TrimMode>partial</TrimMode>
+		<OptimizationPreference>speed</OptimizationPreference>
+		<IlcInstructionSet>native</IlcInstructionSet>
+		<IlcMaxVectorTBitWidth>512</IlcMaxVectorTBitWidth>
+		<LinkerDefaultAction>skip</LinkerDefaultAction>
 	</PropertyGroup>
 
 	<ItemGroup>

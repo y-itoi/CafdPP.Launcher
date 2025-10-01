@@ -40,7 +40,7 @@ namespace Nl.vtc
         internal struct AddressMapEx
         {
             public const int CustomerId = AddressMap.Extensions + 0x00;
-            public const int SerialNo = AddressMap.Extensions + 0x08;
+            public const int SerialNo   = AddressMap.Extensions + 0x08;
             public const int UniqueCode = AddressMap.Extensions + 0x10;
         };
 
@@ -188,18 +188,35 @@ namespace Nl.vtc
                     int len_word = len_byte / 2;
                     byte[] buffer = new byte[len_byte];
 
-                    // ReadData コマンドはワードアドレスを自動インクリメントする。
-                    if (drv.SetAddress( (byte)addr_word )) {
-                        for (int i = 0; i < len_word; i++) {
-                            if (!drv.ReadData( ref buffer[i * 2 + 0], ref buffer[i * 2 + 1] )) {
-                                break;
+                    if (addr < AddressMap.Extensions) {
+                        // ReadData コマンドはワードアドレスを自動インクリメントする。
+                        if (drv.SetAddress( (byte)addr_word )) {
+                            for (int i = 0; i < len_word; i++) {
+                                if (!drv.ReadData( ref buffer[i * 2 + 0], ref buffer[i * 2 + 1] )) {
+                                    break;
+                                }
                             }
                         }
                     }
-                    Array.Copy( buffer, off_byte, result, 0x00, length );
+                    else {
+                        // 拡張領域のワードアドレスは自動インクリメントしない。
+                        for (int i = 0; i < len_word; i++) {
+
+                            if (drv.SetAddress( (byte)addr_word++ )) {
+                                if (drv.ReadData( ref buffer[i * 2 + 0], ref buffer[i * 2 + 1] )) {
+                                    continue;
+                                }
+                            }
+                            break;
+                        }
+                    }
+                    Array.Copy( buffer, 0, result, 0, length );
                 }
+
+                //Array.Copy(this.Buffer, addr, result, 0x00, length);
             }
             catch (Exception ex) {
+
                 Console.WriteLine( ex.Message );
             }
             return result;
@@ -213,6 +230,8 @@ namespace Nl.vtc
             get {
                 if (_id_cache == null) {
                     _id_cache = this.ReadBuffer( AddressMapEx.CustomerId, Driver.DeviceRequest.PacketSize.Pack );
+
+                    //Console.WriteLine( "ID:" + Encoding.ASCII.GetString(_id_cache) );
                 }
                 return _id_cache;
             }
@@ -228,6 +247,8 @@ namespace Nl.vtc
             get {
                 if (_no_cache == null) {
                     _no_cache = this.ReadBuffer( AddressMapEx.SerialNo, Driver.DeviceRequest.PacketSize.Pack );
+
+                    //Console.WriteLine( "SN:" + Encoding.ASCII.GetString( _no_cache ) );
                 }
                 return _no_cache;
             }
@@ -243,6 +264,8 @@ namespace Nl.vtc
             get {
                 if (_uc_cache == null) {
                     _uc_cache = this.ReadBuffer( AddressMapEx.UniqueCode, Driver.DeviceRequest.PacketSize.Pack );
+
+                    //Console.WriteLine( "UC:" + Encoding.ASCII.GetString( _uc_cache ) );
                 }
                 return _uc_cache;
             }

@@ -125,7 +125,7 @@ namespace MadWizard.WinUSBNet.API
 
         [LibraryImport( "winusb.dll", SetLastError = true )]
         [return: MarshalAs( UnmanagedType.Bool )]
-        private static partial bool WinUsb_Initialize( SafeFileHandle DeviceHandle, ref IntPtr InterfaceHandle );
+        private static partial bool WinUsb_Initialize( SafeFileHandle DeviceHandle, out IntPtr InterfaceHandle );
 
         [LibraryImport( "winusb.dll", SetLastError = true )]
         [return: MarshalAs( UnmanagedType.Bool )]
@@ -195,7 +195,7 @@ namespace MadWizard.WinUSBNet.API
         [LibraryImport( "winusb.dll", SetLastError = true )]
         [return: MarshalAs( UnmanagedType.Bool )]
         private static partial bool WinUsb_GetDescriptor( IntPtr InterfaceHandle, byte DescriptorType,
-                        byte Index, UInt16 LanguageID, byte[] Buffer, UInt32 BufferLength, out UInt32 LengthTransfered );
+                        byte Index, UInt16 LanguageID, IntPtr Buffer, UInt32 BufferLength, out UInt32 LengthTransfered );
 
         [LibraryImport( "winusb.dll", SetLastError = true )]
         [return: MarshalAs( UnmanagedType.Bool )]
@@ -210,7 +210,7 @@ namespace MadWizard.WinUSBNet.API
         [LibraryImport( "winusb.dll", SetLastError = true )]
         [return: MarshalAs( UnmanagedType.Bool )]
         private static partial bool WinUsb_GetAssociatedInterface( IntPtr InterfaceHandle, byte AssociatedInterfaceIndex,
-                    out IntPtr AssociatedInterfaceHandle );
+                        ref IntPtr AssociatedInterfaceHandle );
 
         private const int USB_DEVICE_DESCRIPTOR_TYPE = 0x01;
         private const int USB_CONFIGURATION_DESCRIPTOR_TYPE = 0x02;

@@ -240,8 +240,6 @@ namespace Nl.vtc
                     return ErrCode.NotFound;
                 }
             }
-            Console.WriteLine( "ref:{0}", handle.ToString( "X08" ) );
-
             return ErrCode.OK;
         }
 
