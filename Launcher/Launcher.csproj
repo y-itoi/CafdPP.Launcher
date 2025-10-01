@@ -21,8 +21,8 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <Compile Remove="WinUSBNet\DeviceNotifyHook.cs" />
-	  <Compile Remove="WinUSBNet\USBNotifier.cs" />
+	  <Compile Remove="vtc\WinUSBNet\DeviceNotifyHook.cs" />
+	  <Compile Remove="vtc\WinUSBNet\USBNotifier.cs" />
 	</ItemGroup>
 
 </Project>
