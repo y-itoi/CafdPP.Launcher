@@ -141,7 +141,7 @@ namespace Nl.vtc
         /// <returns>エラーコード</returns>
         public static int ScnDev( ref int Count )
         {
-            Console.WriteLine( "ScnDev" );
+            Debug.Print( "ScnDev" );
 
             API.DevMgr.Refresh();
 
@@ -158,7 +158,7 @@ namespace Nl.vtc
         /// <returns>エラーコード</returns>
         public static int CheckId( int index, [MarshalAs( UnmanagedType.LPArray, SizeConst = 8 )] byte[] id )
         {
-            Console.WriteLine( "CheckId({0}, \"********\")", index );
+            Debug.Print( "CheckId({0}, \"********\")", index );
 
             USBDeviceInfo i = null;
             try {
@@ -167,7 +167,7 @@ namespace Nl.vtc
             }
             catch (Exception ex) {
 
-                Console.WriteLine( ex.Message );
+                Debug.Print( ex.Message );
             }
             finally {
 
@@ -215,7 +215,7 @@ namespace Nl.vtc
         /// <returns>エラーコード</returns>
         public static int GetHandle( int index, ref IntPtr handle )
         {
-            Console.WriteLine( "GetHandle({0}, ref)", index );
+            Debug.Print( "GetHandle({0}, ref)", index );
 
             if (API.IsChecked) {
 
@@ -250,7 +250,7 @@ namespace Nl.vtc
         /// <returns>エラーコード</returns>
         public static int Authenticate( IntPtr handle )
         {
-            Console.WriteLine( "Authenticate(0x{0})", handle.ToString( "X08" ) );
+            Debug.Print( "Authenticate(0x{0})", handle.ToString( "X08" ) );
 
             var val = Device.IntPtrAsHash( handle );
             if (API.IsChecked) {
@@ -292,7 +292,7 @@ namespace Nl.vtc
         /// <returns>エラーコード</returns>
         public static int GetStatus( int index )
         {
-            Console.WriteLine( "GetStatus({0})", index );
+            Debug.Print( "GetStatus({0})", index );
 
             if (API.IsChecked) {
 
@@ -326,7 +326,7 @@ namespace Nl.vtc
         /// <returns>エラーコード</returns>
         public static int GetId( int index, IntPtr id )
         {
-            Console.WriteLine( "GetId({0}, 0x{1})", index, id.ToString( "X08" ) );
+            Debug.Print( "GetId({0}, 0x{1})", index, id.ToString( "X08" ) );
 
             byte[] val = null;
             if (API.IsChecked) {
@@ -365,7 +365,7 @@ namespace Nl.vtc
         /// <returns>エラーコード</returns>
         public static int GetNo( int index, IntPtr no )
         {
-            Console.WriteLine( "GetNo({0}, 0x{1})", index, no.ToString( "X08" ) );
+            Debug.Print( "GetNo({0}, 0x{1})", index, no.ToString( "X08" ) );
 
             byte[] val = null;
             if (API.IsChecked) {
@@ -406,9 +406,21 @@ namespace Nl.vtc
         /// <returns>エラーコード</returns>
         public static int GetMem( int index, int addr, int len, IntPtr ptr_buffer )
         {
-            Console.WriteLine( "GetMem({0}, 0x{1:X04}, {2}, 0x{3})", index, addr, len, ptr_buffer.ToString( "X08" ) );
+            Debug.Print( "GetMem({0}, 0x{1:X04}, {2}, 0x{3})", index, addr, len, ptr_buffer.ToString( "X08" ) );
 
-            byte[] val = null;
+            int retcd = GetMem( index, addr, len, out byte[] val );
+            if (retcd == ErrCode.OK) {
+
+                Marshal.Copy( val, 0, ptr_buffer, len );
+            }
+            return retcd;
+        }
+        public static int GetMem( int index, int addr, int len, out byte[] val )
+        {
+            Debug.Print( "GetMem({0}, 0x{1:X04}, {2})", index, addr, len );
+
+            val = [];
+
             if (API.IsChecked) {
 
                 val = API.CheckedDevice.ReadBuffer( addr, len );
@@ -432,7 +444,6 @@ namespace Nl.vtc
                     return ErrCode.NotFound;
                 }
             }
-            Marshal.Copy( val, 0, ptr_buffer, len );
 
             return ErrCode.OK;
         }
