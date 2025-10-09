@@ -120,6 +120,9 @@ retcd = PulseHandle( out IntPtr handle );
 if (retcd == ErrCode.OK) {
     Console.WriteLine( " Program running..." );
 
+    // 画面は表示しなくてよい
+    Min();
+
     //「CAFD Plus+」のプロセスは監視する
     const string app = "CafdPP";
     const string exe = $"{app}.exe";
@@ -331,5 +334,24 @@ partial class Program
         SetConsoleCtrlHandler( new ConsoleCtrlDelegate( handler ), 1 );
         // コンソールが閉じられるまで待機
         Console.ReadLine();
+    }
+
+
+
+
+    [LibraryImport( "user32.dll", EntryPoint = "FindWindowW", SetLastError = true, StringMarshalling = StringMarshalling.Utf16 )]
+    private static partial IntPtr FindWindow( IntPtr lpClassName, string lpWindowName );
+
+    [LibraryImport( "user32.dll", EntryPoint = "ShowWindow", SetLastError = true )]
+    private static partial int ShowWindow( IntPtr hWnd, int nCmdShow );
+
+    static void Min()
+    {
+        //var hWnd = FindWindow( "ConsoleWindowClass", IntPtr.Zero );
+        var hWnd = FindWindow( IntPtr.Zero, Console.Title );
+        if (hWnd != IntPtr.Zero) {
+
+            ShowWindow( hWnd, 6 );
+        }
     }
 }
