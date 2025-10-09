@@ -18,6 +18,11 @@
 		<IlcInstructionSet>native</IlcInstructionSet>
 		<IlcMaxVectorTBitWidth>512</IlcMaxVectorTBitWidth>
 		<LinkerDefaultAction>skip</LinkerDefaultAction>
+
+		<Company>NEWLY CORPORATION</Company>
+		<Authors>NEWLY CORPORATION CAFD Plus+ Team</Authors>
+		<Product>NEWLY CAFD Plus+</Product>
+		<Copyright>© 2025 NEWLY CORPORATION</Copyright>
 	</PropertyGroup>
 
 	<ItemGroup>

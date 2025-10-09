@@ -1,11 +1,14 @@
-﻿using System;
+﻿using Microsoft.VisualBasic;
+using System;
 using System.Diagnostics;
 using System.Reflection;
+using System.Reflection.Metadata;
 using System.Runtime.ConstrainedExecution;
 using System.Runtime.InteropServices;
 using System.Text;
 using Windows.ApplicationModel.Background;
 using Windows.ApplicationModel.Payments;
+using Windows.Graphics.Display;
 using Windows.Media.Devices;
 using Windows.UI.Composition;
 
@@ -16,11 +19,18 @@ Console.WriteLine( "CAFD Plus+" );
 Console.WriteLine( "" );
 Console.WriteLine( " Launching program..." );
 
-byte[] custumerId = Encoding.ASCII.GetBytes("Newly"/*.PadRight( 8, '\0' )*/ );
+byte[] custumerId = Encoding.ASCII.GetBytes( "Newly"/*.PadRight( 8, '\0' )*/ );
 byte[] versionASCII;
 byte[] variationFlags = null!;
 IntPtr lastCorrect = IntPtr.Zero;
 Func<string, string> _MessageParser = _ => "";
+
+
+
+
+
+
+
 
 int c = 0;
 int retcd = ErrCode.OK;
@@ -29,18 +39,18 @@ int PulseHandle( out IntPtr hCorrect )
 {
     hCorrect = IntPtr.Zero;
 
-    retcd = ScnDev(ref c);
+    retcd = ScnDev( ref c );
     if (0 < c) {
         //Console.WriteLine( $"ScnDev find {c} devices!!" );
 
         for (int i = 0; i < c; i++) {
             var index = i + 1;
 
-            retcd = CheckId(index, custumerId);
+            retcd = CheckId( index, custumerId );
             if (retcd == ErrCode.OK) {
 
                 var handle = IntPtr.Zero;
-                retcd = GetHandle(index, ref handle);
+                retcd = GetHandle( index, ref handle );
                 if (retcd == ErrCode.OK) {
                     //Console.WriteLine( $"USB dongle found: {handle:X016}" );
 
@@ -106,7 +116,7 @@ int PulseHandle( out IntPtr hCorrect )
     return retcd;
 }
 
-retcd = PulseHandle(out IntPtr handle);
+retcd = PulseHandle( out IntPtr handle );
 if (retcd == ErrCode.OK) {
     Console.WriteLine( " Program running..." );
 
@@ -198,13 +208,13 @@ if (retcd == ErrCode.OK) {
         return "NG";
     };
 
-    // 終了ハンドリング
+    // プロセスハンドリング
     var cts = new CancellationTokenSource();
     var ct = cts.Token;
     Action Cancel = () => {
         //「CafdPP.exe」のプロセスは殺す
         CafdPP?.Kill();
-        Console.WriteLine( " Process exited." );
+        Console.WriteLine( " Process exited. Please restart `Launcher.exe`." );
 
         cts.Cancel();
     };
@@ -213,7 +223,13 @@ if (retcd == ErrCode.OK) {
     Console.CancelKeyPress += ( sender, e ) => Cancel();
 
     // コンソール画面が閉じたとき
-    AppDomain.CurrentDomain.ProcessExit += ( sender, e ) => Cancel();
+    //AppDomain.CurrentDomain.ProcessExit += ( sender, e ) => Cancel();
+    _ = Task.Run( () => Program.Sub(
+        ( i ) => {
+            Cancel();
+            return true;
+        } )
+    );
 
     // TODO:
     // `CafdPP.exe`アセンブリからGUIDを取得する（dll からしか取得できないかも？）
@@ -230,7 +246,6 @@ if (retcd == ErrCode.OK) {
         p = p.Remove( j ).Substring( i + 1 );
     }
     if (System.IO.File.Exists( p )) {
-
 
         // 起動している「CafdPP.exe」があれば監視する
         var exists = Process.GetProcessesByName( app );
@@ -301,3 +316,20 @@ else {
 }
 Console.WriteLine( "Press any key to exit..." );
 Console.ReadKey();
+
+partial class Program
+{
+    [LibraryImport( "kernel32.dll", SetLastError = true )]
+    private static partial IntPtr SetConsoleCtrlHandler( ConsoleCtrlDelegate Handler, int Add );
+
+    // 終了シグナルをキャッチするデリゲート
+    delegate bool ConsoleCtrlDelegate( int sig );
+
+    static void Sub( Func<int, bool> handler )
+    {
+        // コンソールウィンドウが閉じられる場合の後処理
+        SetConsoleCtrlHandler( new ConsoleCtrlDelegate( handler ), 1 );
+        // コンソールが閉じられるまで待機
+        Console.ReadLine();
+    }
+}
