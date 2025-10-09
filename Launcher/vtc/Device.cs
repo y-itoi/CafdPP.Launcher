@@ -105,7 +105,7 @@ namespace Nl.vtc
                         }
                     }
                     catch (Exception ex) {
-                        Console.WriteLine( ex.Message );
+                        Debug.Print( ex.Message );
                     }
                 }
                 return _Buffer;
@@ -217,7 +217,7 @@ namespace Nl.vtc
             }
             catch (Exception ex) {
 
-                Console.WriteLine( ex.Message );
+                Debug.Print( ex.Message );
             }
             return result;
         }
@@ -231,7 +231,7 @@ namespace Nl.vtc
                 if (_id_cache == null) {
                     _id_cache = this.ReadBuffer( AddressMapEx.CustomerId, Driver.DeviceRequest.PacketSize.Pack );
 
-                    //Console.WriteLine( "ID:" + Encoding.ASCII.GetString(_id_cache) );
+                    //Debug.Print( "ID:" + Encoding.ASCII.GetString(_id_cache) );
                 }
                 return _id_cache;
             }
@@ -248,7 +248,7 @@ namespace Nl.vtc
                 if (_no_cache == null) {
                     _no_cache = this.ReadBuffer( AddressMapEx.SerialNo, Driver.DeviceRequest.PacketSize.Pack );
 
-                    //Console.WriteLine( "SN:" + Encoding.ASCII.GetString( _no_cache ) );
+                    //Debug.Print( "SN:" + Encoding.ASCII.GetString( _no_cache ) );
                 }
                 return _no_cache;
             }
@@ -265,7 +265,7 @@ namespace Nl.vtc
                 if (_uc_cache == null) {
                     _uc_cache = this.ReadBuffer( AddressMapEx.UniqueCode, Driver.DeviceRequest.PacketSize.Pack );
 
-                    //Console.WriteLine( "UC:" + Encoding.ASCII.GetString( _uc_cache ) );
+                    //Debug.Print( "UC:" + Encoding.ASCII.GetString( _uc_cache ) );
                 }
                 return _uc_cache;
             }
