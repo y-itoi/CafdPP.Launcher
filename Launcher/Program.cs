@@ -1,16 +1,7 @@
-﻿using Microsoft.VisualBasic;
-using System;
+﻿using System;
 using System.Diagnostics;
-using System.Reflection;
-using System.Reflection.Metadata;
-using System.Runtime.ConstrainedExecution;
 using System.Runtime.InteropServices;
 using System.Text;
-using Windows.ApplicationModel.Background;
-using Windows.ApplicationModel.Payments;
-using Windows.Graphics.Display;
-using Windows.Media.Devices;
-using Windows.UI.Composition;
 
 using static Nl.vtc.API;
 
@@ -40,7 +31,7 @@ int PulseHandle( out IntPtr hCorrect )
     hCorrect = IntPtr.Zero;
 
     retcd = ScnDev( ref c );
-    if (0 < c) {
+    if (retcd == ErrCode.OK) {
         //Console.WriteLine( $"ScnDev find {c} devices!!" );
 
         for (int i = 0; i < c; i++) {
@@ -109,7 +100,6 @@ int PulseHandle( out IntPtr hCorrect )
         }
     }
     else {
-        retcd = ErrCode.NotFound;
         //Console.WriteLine( "Divce not found!!" );
 
     }

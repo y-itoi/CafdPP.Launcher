@@ -2,34 +2,29 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-
 using MadWizard.WinUSBNet;
 
 namespace Nl.vtc
 {
 	public class Manager
 	{
-		private Manager()
-		{
-		}
-		public static Manager GetInstance()
-		{
-			if (_this == null) {
-				_this = new Manager();
-			}
-			return _this;
-		}
-		private static Manager _this = null;
+        private static Manager? _Singleton = null;
+
+		/// <summary>
+		/// <see cref="Manager"/>の唯一のインスタンスを得る
+		/// </summary>
+		/// <returns></returns>
+        public static Manager GetInstance() => _Singleton ??= new Manager();
 
 		public void Refresh()
 		{
-			lock (_lockDeviceInfoList) {
+			lock (_Lockey) {
 
 				this.DeviceInfoList.Clear();
 
 				try {
 					USBDeviceInfo[] e = USBDevice.GetDevices( TargetDeviceInfo.DeviceInterfaceGUID );
-					foreach (USBDeviceInfo i in e) {
+					foreach (var i in e) {
 
 						if (i.VID == TargetDeviceInfo.VendorID && i.PID == TargetDeviceInfo.ProductID) {
 							this.DeviceInfoList.Add( i );
@@ -44,19 +39,14 @@ namespace Nl.vtc
 		}
 		public void Clear()
 		{
-			lock (_lockDeviceInfoList) {
+			lock (_Lockey) {
 
 				this.DeviceInfoList.Clear();
 			}
 		}
-		private object _lockDeviceInfoList = new object();
+		private readonly Lock _Lockey = new();
 
-		public List<USBDeviceInfo> DeviceInfoList
-		{
-			get { return _DeviceInfoList; }
-			set { _DeviceInfoList = value; }
-		}
-		private List<USBDeviceInfo> _DeviceInfoList = new List<USBDeviceInfo>( 0x7f );
+		public List<USBDeviceInfo> DeviceInfoList { get; set; } = new( 0x7f );
 
 
 

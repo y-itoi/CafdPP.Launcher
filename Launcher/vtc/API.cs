@@ -141,13 +141,13 @@ namespace Nl.vtc
         /// <returns>エラーコード</returns>
         public static int ScnDev( ref int Count )
         {
-            Debug.Print( "ScnDev" );
+            //Debug.Print( "ScnDev" );
 
             API.DevMgr.Refresh();
 
             Count = API.DevMgr.DeviceInfoList.Count;
 
-            return ErrCode.OK;
+            return 0 < Count ? ErrCode.OK : ErrCode.NotFound;
         }
 
         /// <summary>
@@ -158,9 +158,9 @@ namespace Nl.vtc
         /// <returns>エラーコード</returns>
         public static int CheckId( int index, [MarshalAs( UnmanagedType.LPArray, SizeConst = 8 )] byte[] id )
         {
-            Debug.Print( "CheckId({0}, \"********\")", index );
+            //Debug.Print( "CheckId({0}, \"********\")", index );
 
-            USBDeviceInfo i = null;
+            USBDeviceInfo i = null!;
             try {
 
                 i = API.DevMgr.DeviceInfoList.ElementAt( index - 1 );
