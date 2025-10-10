@@ -23,16 +23,16 @@ using MadWizard.WinUSBNet;
 // 手順2)公開キーファイルから公開キーを出力します
 // sn -tp N-LOCK3.snk
 // 
-[assembly: InternalsVisibleTo( "N-LOCK3, PublicKey=0024000004800000940000000602000000240000525341310004000001000100317b1e099f88fb"
-                                                + "37272b82d82397795dc5e1244fd403ad33fb8700b7e64c36261b8d519be1a649922518fc67e6d5"
-                                                + "fb17653f9ca45b177bc0de07f46f1204490c1a470a1580e6126adf0c903f7ed747f24c0bc876ea"
-                                                + "d43c927dedfcdcc34861fa4aa40baa2da38d8ab115be9f897a976a41d6058ff639af784a546735"
-                                                + "5a1583ae" )]
-[assembly: InternalsVisibleTo( "vtcx,    PublicKey=002400000480000094000000060200000024000052534131000400000100010055b79c873709fa"
-                                                + "856c0ace883ebe3c0e5d9a9e5c453c2ccd8b6930a63ab41bdafb2b30281fee8f3b1a8a1caf7d60"
-                                                + "37c89a9bf8e5a303eb385b4d3d476356717a3f390af035ee58ab038fb08b4a8e1972731d7e1453"
-                                                + "f3952b2a22cb06181c7d55a4af2b19d1c79d5fc090dcb6f692ccce8af6ee5ca882d37a0ac376d4"
-                                                + "83cf5bb8" )]
+//[assembly: InternalsVisibleTo( "N-LOCK3, PublicKey=0024000004800000940000000602000000240000525341310004000001000100317b1e099f88fb"
+//                                                + "37272b82d82397795dc5e1244fd403ad33fb8700b7e64c36261b8d519be1a649922518fc67e6d5"
+//                                                + "fb17653f9ca45b177bc0de07f46f1204490c1a470a1580e6126adf0c903f7ed747f24c0bc876ea"
+//                                                + "d43c927dedfcdcc34861fa4aa40baa2da38d8ab115be9f897a976a41d6058ff639af784a546735"
+//                                                + "5a1583ae" )]
+//[assembly: InternalsVisibleTo( "vtcx,    PublicKey=002400000480000094000000060200000024000052534131000400000100010055b79c873709fa"
+//                                                + "856c0ace883ebe3c0e5d9a9e5c453c2ccd8b6930a63ab41bdafb2b30281fee8f3b1a8a1caf7d60"
+//                                                + "37c89a9bf8e5a303eb385b4d3d476356717a3f390af035ee58ab038fb08b4a8e1972731d7e1453"
+//                                                + "f3952b2a22cb06181c7d55a4af2b19d1c79d5fc090dcb6f692ccce8af6ee5ca882d37a0ac376d4"
+//                                                + "83cf5bb8" )]
 
 namespace Nl.vtc
 {
@@ -160,7 +160,7 @@ namespace Nl.vtc
         {
             //Debug.Print( "CheckId({0}, \"********\")", index );
 
-            USBDeviceInfo i = null!;
+            USBDeviceInfo? i = null;
             try {
 
                 i = API.DevMgr.DeviceInfoList.ElementAt( index - 1 );
@@ -205,7 +205,7 @@ namespace Nl.vtc
             return ErrCode.NotFound;
         }
         private static bool IsChecked { get; set; }
-        internal static Device CheckedDevice { get; set; }
+        internal static Device? CheckedDevice { get; set; }
 
         /// <summary>
         /// 指定のN-LOCKを認証デバイスとして利用する事を通知して厳密な識別子を得る

@@ -48,7 +48,7 @@ namespace Nl.vtc
         /// デバイスのデータ・メモリをローカル領域にマップします
         /// </summary>
         #region    Buffer
-        internal byte[] Buffer {
+        internal byte[]? Buffer {
             get {
                 if (_Buffer == null) {
                     _Buffer = new byte[BlockSize * 3];
@@ -68,7 +68,7 @@ namespace Nl.vtc
                                 int len_word = len_byte / 2;
                                 byte[] buffer = new byte[len_byte];
 
-                                // ReadData コマンドはワードアドレスを自動インクリメントする。
+                                // ワードアドレスは自動インクリメントする
                                 if (drv.SetAddress( (byte)addr_word )) {
                                     for (int i = 0; i < len_word; i++) {
                                         if (!drv.ReadData( ref buffer[i * 2 + 0], ref buffer[i * 2 + 1] )) {
@@ -90,7 +90,7 @@ namespace Nl.vtc
                                 int len_word = len_byte / 2;
                                 byte[] buffer = new byte[len_byte];
 
-                                // 拡張領域のワードアドレスは自動インクリメントしない。
+                                // 拡張領域のワードアドレスは自動インクリメントしない
                                 for (int i = 0; i < len_word; i++) {
 
                                     if (drv.SetAddress( (byte)addr_word++ )) {
@@ -111,7 +111,7 @@ namespace Nl.vtc
                 return _Buffer;
             }
         }
-        private byte[] _Buffer = null;
+        private byte[]? _Buffer = null;
         #endregion(Buffer)
 
         /// <summary>
@@ -133,10 +133,10 @@ namespace Nl.vtc
                         _StrongName = provider.ComputeHash( buffer );
                     }
                 }
-                return _StrongName;
+                return _StrongName ?? [];
             }
         }
-        private byte[] _StrongName = null;
+        private byte[]? _StrongName = null;
 
         public static byte[] IntPtrAsHash( IntPtr handle )
         {
@@ -146,11 +146,11 @@ namespace Nl.vtc
             return buffer;
         }
         public IntPtr HashAsIntPtr {
-            get { return this.AllocCache(); }
+            get => this.AllocCache();
         }
         private IntPtr AllocCache()
         {
-            if (_Cache == IntPtr.Zero && this.StrongName != null) {
+            if (_Cache == IntPtr.Zero && 0 < this.StrongName.Length) {
                 _Cache = Marshal.AllocHGlobal( this.StrongName.Length );
                 Marshal.Copy( this.StrongName, 0, _Cache, this.StrongName.Length );
             }
