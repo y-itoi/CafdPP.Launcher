@@ -139,7 +139,7 @@ namespace Nl.vtc
         /// </summary>
         /// <param name="Count">N-LOCKの数</param>
         /// <returns>エラーコード</returns>
-        public static int ScnDev( ref int Count )
+        public static int ScnDev( out int Count )
         {
             //Debug.Print( "ScnDev" );
 
@@ -213,7 +213,7 @@ namespace Nl.vtc
         /// <param name="index">>N-LOCKの位置を指定する 1 から始まるインデックス番号</param>
         /// <param name="handle">N-LOCKの識別子</param>
         /// <returns>エラーコード</returns>
-        public static int GetHandle( int index, ref IntPtr handle )
+        public static int GetHandle( int index, out IntPtr handle )
         {
             Debug.Print( "GetHandle({0}, ref)", index );
 
@@ -223,9 +223,11 @@ namespace Nl.vtc
             }
             else {
 
+                handle = IntPtr.Zero;
+
                 if (API.CheckedDevice != null) {
                     API.DevMgr.Refresh();
-                    var i = API.DevMgr.DeviceInfoList.ElementAtOrDefault( index );
+                    var i = API.DevMgr.DeviceInfoList.ElementAtOrDefault( index - 1 );
                     if (i != null) {
                         var nlock = new Device( i );
                         if (nlock.StrongName.SequenceEqual( API.CheckedDevice.StrongName )) {
@@ -301,7 +303,7 @@ namespace Nl.vtc
 
                 if (API.CheckedDevice != null) {
                     API.DevMgr.Refresh();
-                    var i = API.DevMgr.DeviceInfoList.ElementAtOrDefault( index );
+                    var i = API.DevMgr.DeviceInfoList.ElementAtOrDefault( index - 1 );
                     if (i != null) {
                         var nlock = new Device( i );
                         if (nlock.StrongName.SequenceEqual( API.CheckedDevice.StrongName )) {
@@ -337,7 +339,7 @@ namespace Nl.vtc
 
                 if (API.CheckedDevice != null) {
                     API.DevMgr.Refresh();
-                    var i = API.DevMgr.DeviceInfoList.ElementAtOrDefault( index );
+                    var i = API.DevMgr.DeviceInfoList.ElementAtOrDefault( index - 1 );
                     if (i != null) {
                         var nlock = new Device( i );
                         if (nlock.StrongName.SequenceEqual( API.CheckedDevice.StrongName )) {
@@ -376,7 +378,7 @@ namespace Nl.vtc
 
                 if (API.CheckedDevice != null) {
                     API.DevMgr.Refresh();
-                    var i = API.DevMgr.DeviceInfoList.ElementAtOrDefault( index );
+                    var i = API.DevMgr.DeviceInfoList.ElementAtOrDefault( index - 1 );
                     if (i != null) {
                         var nlock = new Device( i );
                         if (nlock.StrongName.SequenceEqual( API.CheckedDevice.StrongName )) {
@@ -429,7 +431,7 @@ namespace Nl.vtc
 
                 if (API.CheckedDevice != null) {
                     API.DevMgr.Refresh();
-                    var i = API.DevMgr.DeviceInfoList.ElementAtOrDefault( index );
+                    var i = API.DevMgr.DeviceInfoList.ElementAtOrDefault( index - 1 );
                     if (i != null) {
                         var nlock = new Device( i );
                         if (nlock.StrongName.SequenceEqual( API.CheckedDevice.StrongName )) {
