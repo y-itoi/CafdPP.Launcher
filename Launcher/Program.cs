@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Reflection;
-using System.Reflection.Metadata.Ecma335;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
@@ -273,11 +271,16 @@ partial class Program
         return "MessageNotFound";
     }
 
-    void LaunchTarget( string app )
+    void LaunchTarget( string app, bool launchingOnly = false )
     {
         var p = ExecLocation();
         var exe = $"{app}.exe";
         var json = $"{app}.json";
+
+        if (launchingOnly) {
+            // 起動していなければ起動して、かつ監視はしない。
+            this.cts.Cancel();
+        }
 
         Console.WriteLine( " Launching program..." );
         do {
@@ -423,9 +426,11 @@ partial class Program
 
     static void Proc()
     {
+        const string Target = "CafdPP";
+
         // TODO: 環境ファイル「CafdPP.JSON」にアセンブリの場所があるので今ならGUIDは取得してこれるが...
         var guid = "9B49E45A-E9C3-46F5-9CA2-E65BB26AE874";
-        using var mutex = new Mutex( true, $"CafdPP:{{{guid}}}", out bool createdNew );
+        using var mutex = new Mutex( true, $"{Target}:{{{guid}}}", out bool createdNew );
         if (createdNew) {
 
             Console.WriteLine( "_/ (C) 2025 NEWLY CORPORATION" );
@@ -447,7 +452,7 @@ partial class Program
                 _ = NlPipe.NamedPipeServer.CreatePipeServerAsync( guid, @this.ParseMessages, @this.ct );
 
                 //「CAFD Plus+」を起動して監視する
-                @this.LaunchTarget( "CafdPP" );
+                @this.LaunchTarget( Target );
 
             }
             else {
@@ -459,6 +464,9 @@ partial class Program
             Console.ReadKey();
         }
         else {
+
+            // 自分はランチャーなので、ターゲットが死んでいるなら起動だけは試す。
+            new Program().LaunchTarget( Target, true );
 
             Console.WriteLine( "Already running..." );
         }
