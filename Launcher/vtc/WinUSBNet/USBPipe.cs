@@ -16,7 +16,7 @@ namespace MadWizard.WinUSBNet
     public class USBPipe
     {
         private API.WINUSB_PIPE_INFORMATION _pipeInfo;
-        private USBInterface _interface = null;
+        private USBInterface _interface = null!;
         private USBDevice _device;
         private USBPipePolicy _policy;
 
@@ -346,7 +346,7 @@ namespace MadWizard.WinUSBNet
             _device = device;
 
             // Policy is not set until interface is attached
-            _policy = null;
+            _policy = null!;
         }
 
         internal void AttachInterface( USBInterface usbInterface )

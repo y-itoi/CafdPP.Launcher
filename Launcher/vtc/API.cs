@@ -219,7 +219,7 @@ namespace Nl.vtc
 
             if (API.IsChecked) {
 
-                handle = API.CheckedDevice.HashAsIntPtr;
+                handle = API.CheckedDevice?.HashAsIntPtr ?? IntPtr.Zero;
             }
             else {
 
@@ -257,7 +257,7 @@ namespace Nl.vtc
             var val = Device.IntPtrAsHash( handle );
             if (API.IsChecked) {
 
-                if (!API.CheckedDevice.StrongName.SequenceEqual( val )) {
+                if (!(API.CheckedDevice?.StrongName ?? []).SequenceEqual( val )) {
 
                     return ErrCode.NotFound;
                 }
@@ -330,10 +330,10 @@ namespace Nl.vtc
         {
             Debug.Print( "GetId({0}, 0x{1})", index, id.ToString( "X08" ) );
 
-            byte[] val = null;
+            byte[] val = null!;
             if (API.IsChecked) {
 
-                val = API.CheckedDevice.Id;
+                val = API.CheckedDevice?.Id ?? [];
             }
             else {
 
@@ -369,10 +369,10 @@ namespace Nl.vtc
         {
             Debug.Print( "GetNo({0}, 0x{1})", index, no.ToString( "X08" ) );
 
-            byte[] val = null;
+            byte[] val = null!;
             if (API.IsChecked) {
 
-                val = API.CheckedDevice.No;
+                val = API.CheckedDevice?.No ?? [];
             }
             else {
 
@@ -421,11 +421,11 @@ namespace Nl.vtc
         {
             Debug.Print( "GetMem({0}, 0x{1:X04}, {2})", index, addr, len );
 
-            val = [];
+            val = null!;
 
             if (API.IsChecked) {
 
-                val = API.CheckedDevice.ReadBuffer( addr, len );
+                val = API.CheckedDevice?.ReadBuffer( addr, len ) ?? [];
             }
             else {
 

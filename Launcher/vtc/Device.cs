@@ -236,7 +236,7 @@ namespace Nl.vtc
                 return _id_cache;
             }
         }
-        private byte[] _id_cache = default;
+        private byte[]? _id_cache = default;
         #endregion
 
         /// <summary>
@@ -253,7 +253,7 @@ namespace Nl.vtc
                 return _no_cache;
             }
         }
-        private byte[] _no_cache = default;
+        private byte[]? _no_cache = default;
         #endregion
 
         /// <summary>
@@ -270,7 +270,7 @@ namespace Nl.vtc
                 return _uc_cache;
             }
         }
-        private byte[] _uc_cache = default;
+        private byte[]? _uc_cache = default;
         #endregion
     }
 }

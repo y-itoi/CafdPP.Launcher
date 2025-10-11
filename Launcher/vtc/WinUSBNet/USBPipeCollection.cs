@@ -39,7 +39,7 @@ namespace MadWizard.WinUSBNet
         {
             get
             {
-                USBPipe pipe;
+                USBPipe? pipe;
                 if (!_pipes.TryGetValue( pipeAddress, out pipe ))
                     throw new IndexOutOfRangeException();
                 return pipe;

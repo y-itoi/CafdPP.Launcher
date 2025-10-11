@@ -17,7 +17,7 @@ namespace MadWizard.WinUSBNet
     /// </summary>
     public class USBDevice : IDisposable
     {
-        private API.WinUSBDevice _wuDevice = null;
+        private API.WinUSBDevice _wuDevice = null!;
         private bool _disposed = false;
 
         /// <summary>
@@ -27,7 +27,7 @@ namespace MadWizard.WinUSBNet
         {
             get;
             private set;
-        }
+        } = null!;
 
         /// <summary>
         /// Collection of all interfaces available on the USB device
@@ -36,7 +36,7 @@ namespace MadWizard.WinUSBNet
         {
             get;
             private set;
-        }
+        } = null!;
 
         /// <summary>
         /// Device descriptor with information about the device
@@ -88,8 +88,7 @@ namespace MadWizard.WinUSBNet
                 return;
 
             if (disposing) {
-                if (_wuDevice != null)
-                    _wuDevice.Dispose();
+                _wuDevice?.Dispose();
             }
 
             // Clean unmanaged resources here.
@@ -712,7 +711,7 @@ namespace MadWizard.WinUSBNet
         /// <param name="guid">The GUID that the device should match.</param>
         /// <returns>An UsbDevice object representing the device if found. If
         /// no device with the given GUID could be found null is returned.</returns>
-        public static USBDevice GetSingleDevice( Guid guid )
+        public static USBDevice? GetSingleDevice( Guid guid )
         {
             API.DeviceDetails[] detailList = API.DeviceManagement.FindDevicesFromGuid( guid );
             if (detailList.Length == 0)
@@ -729,7 +728,7 @@ namespace MadWizard.WinUSBNet
         /// <param name="guidString">The GUID string that the device should match.</param>
         /// <returns>An UsbDevice object representing the device if found. If
         /// no device with the given GUID could be found null is returned.</returns>
-        public static USBDevice GetSingleDevice( string guidString )
+        public static USBDevice? GetSingleDevice( string guidString )
         {
 
             return USBDevice.GetSingleDevice( new Guid( guidString ) );
@@ -749,7 +748,7 @@ namespace MadWizard.WinUSBNet
                     if (langIDs.Length > 0)
                         langID = langIDs[0];
 
-                    string manufacturer = null, product = null, serialNumber = null;
+                    string manufacturer = "", product = "", serialNumber = "";
                     byte idx = 0;
                     idx = deviceDesc.iManufacturer;
                     if (idx > 0)

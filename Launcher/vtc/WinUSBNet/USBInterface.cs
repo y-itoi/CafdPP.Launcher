@@ -44,20 +44,20 @@ namespace MadWizard.WinUSBNet
         /// <summary>
         /// First IN direction pipe on this interface
         /// </summary>
-        public USBPipe InPipe
+        public USBPipe? InPipe
         {
             get;
             private set;
-        }
+        } = null;
 
         /// <summary>
         /// First OUT direction pipe on this interface
         /// </summary>
-        public USBPipe OutPipe
+        public USBPipe? OutPipe
         {
             get;
             private set;
-        }
+        } = null;
 
         /// <summary>
         /// Interface class code. If the interface class does

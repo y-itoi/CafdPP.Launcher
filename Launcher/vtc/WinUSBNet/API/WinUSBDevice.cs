@@ -24,9 +24,9 @@ namespace MadWizard.WinUSBNet.API
     partial class WinUSBDevice : IDisposable
     {
         private bool _disposed = false;
-        private SafeFileHandle _deviceHandle;
+        private SafeFileHandle? _deviceHandle;
         private IntPtr _winUsbHandle = IntPtr.Zero;
-        private IntPtr[] _addInterfaces = null;
+        private IntPtr[]? _addInterfaces = null;
         public WinUSBDevice()
         {
         }
@@ -83,7 +83,7 @@ namespace MadWizard.WinUSBNet.API
         {
             USB_DEVICE_DESCRIPTOR deviceDesc;
             uint transfered;
-            uint size = (uint)Marshal.SizeOf( typeof( USB_DEVICE_DESCRIPTOR ) );
+            uint size = (uint)Marshal.SizeOf<USB_DEVICE_DESCRIPTOR>();
             bool success = WinUsb_GetDescriptor( _winUsbHandle, USB_DEVICE_DESCRIPTOR_TYPE,
                         0, 0, out deviceDesc, size, out transfered );
             if (!success)
@@ -138,7 +138,7 @@ namespace MadWizard.WinUSBNet.API
             int length = ReadStringDescriptor( index, languageID, buffer );
             length -= 2; // Skip length byte and descriptor type
             if (length < 0)
-                return null;
+                return "";
             char[] chars = System.Text.Encoding.Unicode.GetChars( buffer, 2, length );
             return new string( chars );
         }
@@ -173,7 +173,7 @@ namespace MadWizard.WinUSBNet.API
                         0 );
                 if (_deviceHandle.IsInvalid)
                     throw APIException.Win32( "Failed to open WinUSB device handle." );
-                InitializeDevice();
+                InitializeDevice( _deviceHandle );
 
             }
             catch (Exception) {
@@ -190,7 +190,7 @@ namespace MadWizard.WinUSBNet.API
         {
             if (index == 0)
                 return _winUsbHandle;
-            return _addInterfaces[index - 1];
+            return _addInterfaces?[index - 1] ?? IntPtr.Zero;
         }
 
         public int InterfaceCount {
@@ -218,9 +218,9 @@ namespace MadWizard.WinUSBNet.API
             pipes = pipeList.ToArray();
 
         }
-        private void InitializeDevice()
+        private void InitializeDevice( SafeFileHandle deviceHandle )
         {
-            bool success = WinUsb_Initialize( _deviceHandle, out _winUsbHandle );
+            bool success = WinUsb_Initialize( deviceHandle, out _winUsbHandle );
             if (!success)
                 throw APIException.Win32( "Failed to initialize WinUSB handle. Device might not be connected." );
 
@@ -254,7 +254,7 @@ namespace MadWizard.WinUSBNet.API
             }
 
             // Bind handle (needed for overlapped I/O thread pool)
-            ThreadPoolBoundHandle.BindHandle( _deviceHandle );
+            ThreadPoolBoundHandle.BindHandle( deviceHandle );
             // TODO: bind interface handles as well? doesn't seem to be necessary
         }
 
@@ -361,16 +361,16 @@ namespace MadWizard.WinUSBNet.API
         private unsafe void PipeIOCallback( uint errorCode, uint numBytes, NativeOverlapped* pOverlapped )
         {
             try {
-                Exception error = null;
+                Exception? error = null;
                 if (errorCode != 0) {
                     error = APIException.Win32( "Asynchronous operation on WinUSB device failed.", (int)errorCode );
                 }
                 Overlapped overlapped = Overlapped.Unpack( pOverlapped );
-                USBAsyncResult result = (USBAsyncResult)overlapped.AsyncResult;
+                USBAsyncResult? result = (USBAsyncResult?)overlapped.AsyncResult;
                 Overlapped.Free( pOverlapped );
                 pOverlapped = null;
 
-                result.OnCompletion( false, error, (int)numBytes, true );
+                result?.OnCompletion( false, error, (int)numBytes, true );
             }
             finally {
                 if (pOverlapped != null) {

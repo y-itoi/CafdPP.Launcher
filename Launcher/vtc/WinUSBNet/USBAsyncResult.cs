@@ -16,9 +16,9 @@ namespace MadWizard.WinUSBNet
         private AsyncCallback _userCallback;
         private bool _completed;
         private bool _completedSynchronously;
-        private ManualResetEvent _waitEvent;
+        private ManualResetEvent? _waitEvent;
         private int _bytesTransfered;
-        private Exception _error;
+        private Exception? _error;
 
         public USBAsyncResult( AsyncCallback userCallback, object stateObject )
         {
@@ -37,7 +37,7 @@ namespace MadWizard.WinUSBNet
             }
         }
 
-        public Exception Error
+        public Exception? Error
         {
             get
             {
@@ -88,26 +88,25 @@ namespace MadWizard.WinUSBNet
             GC.SuppressFinalize( this );
         }
 
-        public void OnCompletion( bool completedSynchronously, Exception error, int bytesTransfered, bool synchronousCallback )
+        public void OnCompletion( bool completedSynchronously, Exception? error, int bytesTransfered, bool synchronousCallback )
         {
             lock (this) {
                 _completedSynchronously = completedSynchronously;
                 _completed = true;
                 _error = error;
                 _bytesTransfered = bytesTransfered;
-                if (_waitEvent != null)
-                    _waitEvent.Set();
+                _waitEvent?.Set();
             }
             if (_userCallback != null) {
                 if (synchronousCallback)
                     RunCallback( null );
                 else
-                    ThreadPool.QueueUserWorkItem( RunCallback );
+                    _ = ThreadPool.QueueUserWorkItem( RunCallback );
             }
 
         }
 
-        private void RunCallback( object state )
+        private void RunCallback( object? state )
         {
             _userCallback( this );
         }
@@ -117,8 +116,7 @@ namespace MadWizard.WinUSBNet
             if (disposing) {
                 // Cleanup managed resources
                 lock (this) {
-                    if (_waitEvent != null)
-                        _waitEvent.Close();
+                    _waitEvent?.Close();
                 }
             }
         }

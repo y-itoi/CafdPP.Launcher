@@ -60,7 +60,7 @@ namespace MadWizard.WinUSBNet.API
             internal Int32 dbcc_reserved;
             internal Guid dbcc_classguid;
             [MarshalAs( UnmanagedType.ByValArray, SizeConst = 255 )]
-            internal Char[] dbcc_name;
+            internal Char[] dbcc_name = [];
         }
 
         [StructLayout( LayoutKind.Sequential )]

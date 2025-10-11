@@ -226,11 +226,11 @@ namespace MadWizard.WinUSBNet.API
                         // Skip over cbsize (4 bytes) to get the address of the devicePathName.
 
                         IntPtr pDevicePathName = new IntPtr( detailDataBuffer.ToInt64() + 4 );
-                        string pathName = Marshal.PtrToStringUni( pDevicePathName );
+                        string? pathName = Marshal.PtrToStringUni( pDevicePathName );
 
                         // Get the String containing the devicePathName.
 
-                        DeviceDetails details = GetDeviceDetails( pathName, deviceInfoSet, da );
+                        DeviceDetails details = GetDeviceDetails( pathName ?? "", deviceInfoSet, da );
 
 
                         deviceList.Add( details );

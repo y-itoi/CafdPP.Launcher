@@ -84,7 +84,7 @@ namespace MadWizard.WinUSBNet
         /// <param name="interfaceClass">The device class the interface should match</param>
         /// <returns>The first interface with the given interface class, or null
         /// if no such interface exists.</returns>
-        public USBInterface Find( USBBaseClass interfaceClass )
+        public USBInterface? Find( USBBaseClass interfaceClass )
         {
             for (int i = 0; i < _interfaces.Length; i++) {
                 USBInterface iface = _interfaces[i];
