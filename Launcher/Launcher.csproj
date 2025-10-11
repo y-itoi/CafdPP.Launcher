@@ -23,11 +23,16 @@
 		<Authors>NEWLY CORPORATION CAFD Plus+ Team</Authors>
 		<Product>NEWLY CAFD Plus+</Product>
 		<Copyright>© 2025 NEWLY CORPORATION</Copyright>
+		<ApplicationIcon>Assets\bareboard.ico</ApplicationIcon>
 	</PropertyGroup>
 
 	<ItemGroup>
 	  <Compile Remove="vtc\WinUSBNet\DeviceNotifyHook.cs" />
 	  <Compile Remove="vtc\WinUSBNet\USBNotifier.cs" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Content Include="Assets\bareboard.ico" />
 	</ItemGroup>
 
 </Project>
