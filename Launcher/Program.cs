@@ -264,7 +264,7 @@ partial class Program
                 }
                 if (0 != (variationFlags[1] & 0x20)) {
                     // 配膳確認バージョン（Assembly Checker）
-                    flags.Add( "/AseCker" );
+                    flags.Add( "/AsmCker" );
                 }
 
                 return string.Join( ' ', flags );
