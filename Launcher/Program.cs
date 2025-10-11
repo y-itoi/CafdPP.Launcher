@@ -8,7 +8,7 @@ using System.Text.Json;
 
 using static Nl.vtc.API;
 
-// 
+// 役割を果たす
 Program.Proc();
 
 partial class Program
@@ -423,37 +423,44 @@ partial class Program
 
     static void Proc()
     {
-        Console.WriteLine( "_/ (C) 2025 NEWLY CORPORATION" );
-        Console.WriteLine( "_/ CAFD Plus+" );
-        Console.WriteLine( "_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/" );
-        Console.WriteLine( "" );
-        var @this = new Program();
+        // TODO: 環境ファイル「CafdPP.JSON」にアセンブリの場所があるので今ならGUIDは取得してこれるが...
+        var guid = "9B49E45A-E9C3-46F5-9CA2-E65BB26AE874";
+        using var mutex = new Mutex( true, $"CafdPP:{{{guid}}}", out bool createdNew );
+        if (createdNew) {
 
-        int retcd = @this.PulseHandle( out IntPtr handle );
-        if (retcd == ErrCode.OK) {
+            Console.WriteLine( "_/ (C) 2025 NEWLY CORPORATION" );
+            Console.WriteLine( "_/ CAFD Plus+" );
+            Console.WriteLine( "_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/" );
+            Console.WriteLine( "" );
+            var @this = new Program();
 
-            // コンソールが閉じたとき「CAFD Plus+」を殺す
-            Console.CancelKeyPress += ( sender, e ) => @this.Dispose();
+            int retcd = @this.PulseHandle( out IntPtr handle );
+            if (retcd == ErrCode.OK) {
 
-            // コンソールでプログラムが終了したとき「CAFD Plus+」を殺す
-            RegistExitedHandler( @this.Dispose );
+                // コンソールが閉じたとき「CAFD Plus+」を殺す
+                Console.CancelKeyPress += ( sender, e ) => @this.Dispose();
 
-            // TODO: 環境ファイル「CafdPP.JSON」にアセンブリの場所があるのでGUIDは取得してこれるはず
-            //
-            // メッセージングを開始する
-            _ = NlPipe.NamedPipeServer.CreatePipeServerAsync(
-                "9B49E45A-E9C3-46F5-9CA2-E65BB26AE874", @this.ParseMessages, @this.ct );
+                // コンソールでプログラムが終了したとき「CAFD Plus+」を殺す
+                RegistExitedHandler( @this.Dispose );
 
-            //「CAFD Plus+」を起動して監視する
-            @this.LaunchTarget( "CafdPP" );
+                // メッセージングを開始する
+                _ = NlPipe.NamedPipeServer.CreatePipeServerAsync( guid, @this.ParseMessages, @this.ct );
 
+                //「CAFD Plus+」を起動して監視する
+                @this.LaunchTarget( "CafdPP" );
+
+            }
+            else {
+                Console.WriteLine( "" );
+                Console.WriteLine( "CAFD Plus+ AUTHENTICATION FAILURE. Please check USB dongle on your PC." );
+
+            }
+            Console.WriteLine( "Press any key to exit..." );
+            Console.ReadKey();
         }
         else {
-            Console.WriteLine( "" );
-            Console.WriteLine( "CAFD Plus+ AUTHENTICATION FAILURE. Please check USB dongle on your PC." );
 
+            Console.WriteLine( "Already running..." );
         }
-        Console.WriteLine( "Press any key to exit..." );
-        Console.ReadKey();
     }
 }
