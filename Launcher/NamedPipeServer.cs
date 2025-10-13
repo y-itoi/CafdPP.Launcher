@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.IO.Pipes;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -8,7 +9,7 @@ namespace NlPipe
 {
     public class NamedPipeServer
     {
-        public static Task CreatePipeServerAsync( string pipeName, Func<string, string> action, CancellationToken ct = default )
+        public static Task CreatePipeServerAsync( string pipeName, Func<string, string> action, CancellationToken ct )
         {
             return Task.Run( async () => {
                 while (true) {
@@ -25,7 +26,7 @@ namespace NlPipe
                             using (var writer = new StreamWriter( pipeServer )) {
                                 // 受信待ち
                                 ConsoleWriteLine( "Server <- Client Start" );
-                                var recvString = await reader.ReadLineAsync();
+                                var recvString = await reader.ReadLineAsync( ct );
                                 ConsoleWriteLine( "Server <- Client End" );
                                 if (recvString != null) {
                                     // アクション
@@ -35,7 +36,7 @@ namespace NlPipe
 
                                     // 返信
                                     ConsoleWriteLine( "Server -> Client Start" );
-                                    await writer.WriteLineAsync( result );
+                                    await writer.WriteLineAsync( new StringBuilder( result ), ct );
                                     writer.Flush();
                                     ConsoleWriteLine( "Server -> Client End" );
                                 }

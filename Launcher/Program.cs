@@ -73,6 +73,11 @@ partial class Program
     }
     #endregion(ExecLocation())
 
+    #region    Arguments()
+    static string[] Arguments()=> Environment.CommandLine
+            .Split( '/', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries );
+    #endregion(Arguments())
+
     CancellationTokenSource? _cts = null;
     CancellationTokenSource cts => _cts ??= new();
     CancellationToken ct => cts.Token;
@@ -267,6 +272,10 @@ partial class Program
 
                 return string.Join( ' ', flags );
             }
+            case "Exit": {
+                this.Dispose();
+                return "OK";
+            }
         }
         return "MessageNotFound";
     }
@@ -299,72 +308,88 @@ partial class Program
                     // 最初に起動させたプロセスが死んだら、ユーザーが起動しない限りは監視のみにしたい。
                     if (@event == null) {
 
-                        // ターゲットが起動していなければ立ち上げる
-                        var startup = System.IO.Path.GetDirectoryName( p );
-                        if (startup != null) {
-                            // このプロセスを起動したexeファイルと同じ場所を探す
-                            var target = System.IO.Path.Combine( startup, exe );
-                            if (System.IO.File.Exists( target )) {
+                        if (Arguments().Contains( "quiet", StringComparer.OrdinalIgnoreCase )) {
+                            // 監視のみ
+                            @event = new( false );
 
-                                this.CafdPP = Process.Start( target );
-                                continue;
+                            try {
+                                //「CAFD Plus+」が生まれるまで眠る
+                                @event.Wait( this.ct );
                             }
-                        }
+                            catch (Exception) {
 
-                        // 既定の場所を探す
-                        var def = System.IO.Path.Combine( @"C:\NewlyCoJp\CafdPP", exe );
-                        if (System.IO.File.Exists( def )) {
+                                //Console.WriteLine( " Program has restarted." );
+                            }
+                            finally {
 
-                            this.CafdPP = Process.Start( def );
+                                @event.Reset();
+                            }
                             continue;
                         }
+                        else {
+                            // ターゲットが起動していなければ立ち上げる
+                            var startup = System.IO.Path.GetDirectoryName( p );
+                            if (startup != null) {
+                                // このプロセスを起動したexeファイルと同じ場所を探す
+                                var target = System.IO.Path.Combine( startup, exe );
+                                if (System.IO.File.Exists( target )) {
 
-                        // TODO: 環境ファイル「CafdPP.JSON」にあるアセンブリの場所が圧縮ファイルの展開先になっている...
-                        // TODO: このロジックは外部からインジェクションするべきかも
-                        //
-                        // 環境ファイルから最後に起動した場所を探す
-                        var dat = Environment.GetEnvironmentVariable( "ProgramData" );
-                        if (dat != null) {
-                            var cnf = System.IO.Path.Combine( dat, "NewlyCoJp", app, json );
-                            if (System.IO.File.Exists( cnf )) {
-
-                                var buffer = System.IO.File.ReadAllText( cnf );
-                                using var doc = JsonDocument.Parse( buffer );
-
-                                JsonElement? @class = null;
-                                foreach (var node in doc.RootElement.EnumerateObject()) {
-                                    if (node.Name.Equals( "Desktop.Config.Base", StringComparison.OrdinalIgnoreCase )) {
-
-                                        @class = node.Value;
-                                        break;
-                                    }
+                                    this.CafdPP = Process.Start( target );
+                                    continue;
                                 }
-                                if (@class != null) {
+                            }
 
-                                    JsonElement? prop = null;
-                                    foreach (var node in @class.Value.EnumerateObject()) {
-                                        if (node.Name.Equals( "Location", StringComparison.OrdinalIgnoreCase )) {
+                            // 既定の場所を探す
+                            var def = System.IO.Path.Combine( @"C:\NewlyCoJp\CafdPP", exe );
+                            if (System.IO.File.Exists( def )) {
 
-                                            prop = node.Value;
+                                this.CafdPP = Process.Start( def );
+                                continue;
+                            }
+
+                            // 環境ファイルから最後に起動した場所を探す
+                            var dat = Environment.GetEnvironmentVariable( "ProgramData" );
+                            if (dat != null) {
+                                var cnf = System.IO.Path.Combine( dat, "NewlyCoJp", app, json );
+                                if (System.IO.File.Exists( cnf )) {
+
+                                    var buffer = System.IO.File.ReadAllText( cnf );
+                                    using var doc = JsonDocument.Parse( buffer );
+
+                                    JsonElement? @class = null;
+                                    foreach (var node in doc.RootElement.EnumerateObject()) {
+                                        if (node.Name.Equals( "Desktop.Config.Base", StringComparison.OrdinalIgnoreCase )) {
+
+                                            @class = node.Value;
                                             break;
                                         }
                                     }
-                                    if (prop != null) {
+                                    if (@class != null) {
 
-                                        var path = prop.Value.GetString() ?? "";
-                                        if (System.IO.Directory.Exists( path )) {
-                                            var latest = System.IO.Path.Combine( path, exe );
-                                            if (System.IO.File.Exists( latest )) {
+                                        JsonElement? prop = null;
+                                        foreach (var node in @class.Value.EnumerateObject()) {
+                                            if (node.Name.Equals( "Location", StringComparison.OrdinalIgnoreCase )) {
 
-                                                this.CafdPP = Process.Start( latest );
-                                                continue;
+                                                prop = node.Value;
+                                                break;
+                                            }
+                                        }
+                                        if (prop != null) {
+
+                                            var path = prop.Value.GetString() ?? "";
+                                            if (System.IO.Directory.Exists( path )) {
+                                                var latest = System.IO.Path.Combine( path, exe );
+                                                if (System.IO.File.Exists( latest )) {
+
+                                                    this.CafdPP = Process.Start( latest );
+                                                    continue;
+                                                }
                                             }
                                         }
                                     }
                                 }
                             }
                         }
-
                     }
                     else {
 
@@ -413,7 +438,7 @@ partial class Program
                     }
                     catch (Exception) {
 
-                        //Console.WriteLine( " Program has been exited." );
+                        Console.WriteLine( " Program has been exited." );
                     }
                     finally {
 

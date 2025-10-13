@@ -1,31 +1,32 @@
 using System.IO;
 using System.IO.Pipes;
 using System.Security.Principal;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace NlPipe
 {
     public class NamedPipeClient
     {
-        public static async Task CreateClientAsync( string pipeName, string writeString, Action<string> action )
+        public static async Task CreateClientAsync( string pipeName, string writeString, Action<string> action, CancellationToken ct )
         {
             await Task.Run( async () => {
                 try {
                     ConsoleWriteLine( "Client Start" );
                     using (var pipeClient = new NamedPipeClientStream( ".", pipeName, PipeDirection.InOut, PipeOptions.Asynchronous, TokenImpersonationLevel.Impersonation )) {
-                        await pipeClient.ConnectAsync( 1000 );
+                        await pipeClient.ConnectAsync( ct );
 
                         ConsoleWriteLine( "Client StreamReader & StreamWriter" );
                         using (var reader = new StreamReader( pipeClient ))
                         using (var writer = new StreamWriter( pipeClient )) {
                             ConsoleWriteLine( "Client -> Server Start" );
-                            await writer.WriteLineAsync( writeString );
+                            await writer.WriteLineAsync( new StringBuilder( writeString ), ct );
                             writer.Flush();
                             ConsoleWriteLine( "Client -> Server End" );
 
                             // サーバーからの返信を受信
                             ConsoleWriteLine( "Client <- Server Start" );
-                            string? response = await reader.ReadLineAsync();
+                            string? response = await reader.ReadLineAsync( ct );
                             ConsoleWriteLine( "Client <- Server End" );
                             if (response != null) {
                                 ConsoleWriteLine( "Client Action Start" );
