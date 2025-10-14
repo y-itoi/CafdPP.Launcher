@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
@@ -78,28 +79,59 @@ partial class Program
             .Split( '/', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries );
     #endregion(Arguments())
 
-    CancellationTokenSource? _cts = null;
-    CancellationTokenSource cts => _cts ??= new();
-    CancellationToken ct => cts.Token;
 
     /// <summary>
     /// 監視している「CAFD Plus+」のプロセス
     /// </summary>
     Process? CafdPP { get; set; } = null;
 
+    /// <summary>
+    /// リソースを解放してプログラムを終了させる
+    /// </summary>
+    #region    Dispose()
     void Dispose()
     {
         Console.WriteLine( " Process exited. Please restart `Launcher.exe`." );
         CafdPP?.Kill();
         cts.Cancel();
+
+        this.IsDisposed = true;
     }
+    CancellationTokenSource? _cts = null;
+    CancellationTokenSource cts => _cts ??= new();
+    CancellationToken ct => cts.Token;
 
-    readonly byte[] customerId = Encoding.ASCII.GetBytes( "Newly"/*.PadRight( 8, '\0' )*/  );
-    byte[] versionASCII = null!;
-    byte[] variationFlags = null!;
+    bool IsDisposed { get; set; } = false;
+    #endregion(Dispose())
 
+    /// <summary>
+    /// 起動や終了、再起動イベントを待つ
+    /// </summary>
+    #region    WaitEvent()
+    bool WaitEvent( ManualResetEventSlim @event )
+    {
+        try {
+
+            @event.Wait( this.ct );
+            return true;
+        }
+        catch (Exception) {
+
+            //Console.WriteLine( "" );
+            return false;
+        }
+        finally {
+
+            @event.Reset();
+        }
+    }
     ManualResetEventSlim? @event = null;
+    #endregion(WaitEvent())
 
+    /// <summary>
+    /// USBドングルのハンドルを更新する
+    /// </summary>
+    #region    PulseHandle()
     int PulseHandle( out IntPtr handleCorrect )
     {
         handleCorrect = IntPtr.Zero;
@@ -184,7 +216,15 @@ partial class Program
         }
         return retcd;
     }
+    readonly byte[] customerId = Encoding.ASCII.GetBytes( "Newly"/*.PadRight( 8, '\0' )*/  );
+    byte[] versionASCII = null!;
+    byte[] variationFlags = null!;
+    #endregion(PulseHandle())
 
+    /// <summary>
+    /// プロセス間通信のメッセージをコマンドとして解釈する
+    /// </summary>
+    #region    ParseMessage()
     string ParseMessages( string message )
     {
         switch (message) {
@@ -274,12 +314,17 @@ partial class Program
             }
             case "Exit": {
                 this.Dispose();
-                return "OK";
+                return "AllRight";
             }
         }
         return "MessageNotFound";
     }
+    #endregion(ParseMessage())
 
+    /// <summary>
+    /// 指定の実行ファイルからプロセスを起動する
+    /// </summary>
+    #region    LaunchTarget
     void LaunchTarget( string app, bool launchingOnly = false )
     {
         var p = ExecLocation();
@@ -312,48 +357,38 @@ partial class Program
                             // 監視のみ
                             @event = new( false );
 
-                            try {
-                                //「CAFD Plus+」が生まれるまで眠る
-                                @event.Wait( this.ct );
-                            }
-                            catch (Exception) {
-
-                                //Console.WriteLine( " Program has restarted." );
-                            }
-                            finally {
-
-                                @event.Reset();
-                            }
+                            //「CAFD Plus+」が生まれるまで眠る
+                            _ = WaitEvent( @event );
                             continue;
                         }
                         else {
-                            // ターゲットが起動していなければ立ち上げる
-                            var startup = System.IO.Path.GetDirectoryName( p );
+                            // 1.ターゲットが起動していなければ立ち上げる
+                            var startup = Path.GetDirectoryName( p );
                             if (startup != null) {
                                 // このプロセスを起動したexeファイルと同じ場所を探す
-                                var target = System.IO.Path.Combine( startup, exe );
-                                if (System.IO.File.Exists( target )) {
+                                var target = Path.Combine( startup, exe );
+                                if (File.Exists( target )) {
 
                                     this.CafdPP = Process.Start( target );
                                     continue;
                                 }
                             }
 
-                            // 既定の場所を探す
-                            var def = System.IO.Path.Combine( @"C:\NewlyCoJp\CafdPP", exe );
-                            if (System.IO.File.Exists( def )) {
+                            // 2.既定の場所を探す
+                            var def = Path.Combine( @"C:\NewlyCoJp\CafdPP", exe );
+                            if (File.Exists( def )) {
 
                                 this.CafdPP = Process.Start( def );
                                 continue;
                             }
 
-                            // 環境ファイルから最後に起動した場所を探す
+                            // 3.環境ファイルから最後に起動した場所を探す
                             var dat = Environment.GetEnvironmentVariable( "ProgramData" );
                             if (dat != null) {
-                                var cnf = System.IO.Path.Combine( dat, "NewlyCoJp", app, json );
-                                if (System.IO.File.Exists( cnf )) {
+                                var cnf = Path.Combine( dat, "NewlyCoJp", app, json );
+                                if (File.Exists( cnf )) {
 
-                                    var buffer = System.IO.File.ReadAllText( cnf );
+                                    var buffer = File.ReadAllText( cnf );
                                     using var doc = JsonDocument.Parse( buffer );
 
                                     JsonElement? @class = null;
@@ -377,9 +412,9 @@ partial class Program
                                         if (prop != null) {
 
                                             var path = prop.Value.GetString() ?? "";
-                                            if (System.IO.Directory.Exists( path )) {
-                                                var latest = System.IO.Path.Combine( path, exe );
-                                                if (System.IO.File.Exists( latest )) {
+                                            if (Directory.Exists( path )) {
+                                                var latest = Path.Combine( path, exe );
+                                                if (File.Exists( latest )) {
 
                                                     this.CafdPP = Process.Start( latest );
                                                     continue;
@@ -393,18 +428,8 @@ partial class Program
                     }
                     else {
 
-                        try {
-                            //「CAFD Plus+」が生き返るまで眠る
-                            @event.Wait( this.ct );
-                        }
-                        catch (Exception) {
-
-                            //Console.WriteLine( " Program has restarted." );
-                        }
-                        finally {
-
-                            @event.Reset();
-                        }
+                        //「CAFD Plus+」が生き返るまで眠る
+                        _ = WaitEvent( @event );
                         continue;
                     }
                 }
@@ -432,22 +457,16 @@ partial class Program
                     this.CafdPP.EnableRaisingEvents = true;
                     this.CafdPP.Exited += ( sender, e ) => @event.Set();
 
-                    try {
-                        //「CAFD Plus+」が死ぬまで眠る
-                        @event.Wait( this.ct );
-                    }
-                    catch (Exception) {
+                    //「CAFD Plus+」が死ぬまで眠る
+                    if (!WaitEvent( @event )) {
 
                         Console.WriteLine( " Program has been exited." );
-                    }
-                    finally {
-
-                        @event.Reset();
                     }
                 }
             }
         } while (!this.cts.IsCancellationRequested);
     }
+    #endregion(LaunchTarget)
 
     static void Proc()
     {
@@ -485,15 +504,17 @@ partial class Program
                 Console.WriteLine( "CAFD Plus+ AUTHENTICATION FAILURE. Please check USB dongle on your PC." );
 
             }
-            Console.WriteLine( "Press any key to exit..." );
-            Console.ReadKey();
+            if (!@this.IsDisposed) {
+                Console.WriteLine( "Press any key to exit..." );
+                Console.ReadKey();
+
+            }
         }
         else {
+            Console.WriteLine( "Already running..." );
 
             // 自分はランチャーなので、ターゲットが死んでいるなら起動だけは試す。
             new Program().LaunchTarget( Target, true );
-
-            Console.WriteLine( "Already running..." );
         }
     }
 }
