@@ -77,6 +77,11 @@ partial class Program
     #region    Arguments()
     static string[] Arguments()=> Environment.CommandLine
             .Split( '/', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries );
+
+    /// <summary>
+    /// 監視のみを要求されたか
+    /// </summary>
+    static bool BeQuiet() => Arguments().Contains( "quiet", StringComparer.OrdinalIgnoreCase );
     #endregion(Arguments())
 
 
@@ -231,7 +236,7 @@ partial class Program
             case "Authenticate": {
 
                 //「CAFD Plus+」が生き返った場合に対応する
-                if (CafdPP == null) {
+                if (this.CafdPP == null) {
                     // 監視していないプロセスからメッセージがきた、つまり生き返った。
                     if (@event != null) {
                         @event.Set();
@@ -313,7 +318,11 @@ partial class Program
                 return string.Join( ' ', flags );
             }
             case "Exit": {
-                this.Dispose();
+
+                if (!BeQuiet()) {
+                    // 自身も終了する
+                    this.Dispose();
+                }
                 return "AllRight";
             }
         }
@@ -336,32 +345,33 @@ partial class Program
             this.cts.Cancel();
         }
 
-        Console.WriteLine( " Launching program..." );
         do {
             if (this.CafdPP == null) {
 
-                // TODO: 多重起動していたらゾンビの可能性がある、殺してあげる？
-                // 
                 // 起動しているターゲットがあれば監視する
                 var exists = Process.GetProcessesByName( app );
+                // TODO: 多重起動していたらゾンビの可能性がある、殺してあげる？
                 if (exists != null && 0 < exists.Length) {
+                    if (@event == null) {
+                        Console.WriteLine( " Attaching program..." );
 
+                    }
                     this.CafdPP = exists.First();
                     continue;
                 }
                 else {
                     // 最初に起動させたプロセスが死んだら、ユーザーが起動しない限りは監視のみにしたい。
                     if (@event == null) {
+                        if (BeQuiet()) {
+                            Console.WriteLine( " Waiting for program start..." );
 
-                        if (Arguments().Contains( "quiet", StringComparer.OrdinalIgnoreCase )) {
                             // 監視のみ
-                            @event = new( false );
-
-                            //「CAFD Plus+」が生まれるまで眠る
-                            _ = WaitEvent( @event );
+                            @event ??= new( false );
                             continue;
                         }
                         else {
+                            Console.WriteLine( " Launching program..." );
+
                             // 1.ターゲットが起動していなければ立ち上げる
                             var startup = Path.GetDirectoryName( p );
                             if (startup != null) {
@@ -428,7 +438,7 @@ partial class Program
                     }
                     else {
 
-                        //「CAFD Plus+」が生き返るまで眠る
+                        //「CAFD Plus+」が生まれる／生き返るまで眠る
                         _ = WaitEvent( @event );
                         continue;
                     }
@@ -451,6 +461,7 @@ partial class Program
                         // これ以降、画面は表示しなくてよい。
                         MinimiseSelf();
                     }
+                    //「CAFD Plus+」のプロセスが起動し（てい）た
                     Console.WriteLine( " Done." );
 
                     //「CAFD Plus+」に生命保険を掛ける
