@@ -1,0 +1,4 @@
+<Project>
+	<Import Project="Solution.targets"
+			Condition=" '$(Configuration)' == 'Release' " />
+</Project>

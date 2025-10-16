@@ -1,6 +1,24 @@
 <Project>
-  <PropertyGroup>
-    <BaseOutputPath>$(MSBuildThisFileDirectory)bin\</BaseOutputPath>
-    <BaseIntermediateOutputPath>$(MSBuildThisFileDirectory)obj\$(MSBuildProjectName)\</BaseIntermediateOutputPath>
-  </PropertyGroup>
+	<PropertyGroup>
+		<BaseIntermediateOutputPath>$(MSBuildThisFileDirectory)obj\$(MSBuildProjectName)\</BaseIntermediateOutputPath>
+		<BaseOutputPath>$(MSBuildThisFileDirectory)bin\</BaseOutputPath>
+		<PublishDir>$(BaseOutputPath)$(Platform)\$(Configuration)\$(TargetFramework)\</PublishDir>
+		<AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+
+		<!--
+		<DateSince>$([System.DateTime]::Parse("2000-01-01"))</DateSince>
+		<TotalDays>$([System.DateTime]::Now.Subtract($(DateSince)).TotalDays)</TotalDays>
+		<TotalSeconds>$([System.TimeSpan]::Parse($([System.DateTime]::Now.ToString("HH:mm:ss"))).TotalSeconds)</TotalSeconds>
+		<Divisor>2</Divisor>
+		<BuildNumber>$([System.Math]::Floor($(TotalDays)))</BuildNumber>
+		<RevisionNumber>$([MSBuild]::Divide($(TotalSeconds),$(Divisor)))</RevisionNumber>
+		<Version>3.0.$(BuildNumber).$(RevisionNumber)</Version>
+		-->
+
+		<AssemblyVersion>$(Version)</AssemblyVersion>
+		<AssemblyFileVersion>$(Version)</AssemblyFileVersion>
+		<InformationalVersion>$(Version)</InformationalVersion>
+		<Company>NEWLY CORPORATION</Company>
+		<Copyright>© 2025 NEWLY CORPORATION</Copyright>
+	</PropertyGroup>
 </Project>

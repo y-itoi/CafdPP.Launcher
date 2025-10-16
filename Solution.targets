@@ -1,0 +1,27 @@
+<Project>
+	<Target Name="SetVersionFromTimestamp" BeforeTargets="BeforeBuild" Condition=" '$(Configuration)' == 'Release' ">
+		<!--
+			バージョンの定義を`Directory.Build.props`から逃がしておかないと
+			２秒経過してリビジョンが変わる毎にVSにcsprojファイルの更新が掛かる
+		-->
+		<PropertyGroup>
+			<DateSince>$([System.DateTime]::Parse("2000-01-01"))</DateSince>
+			<TotalDays>$([System.DateTime]::Now.Subtract($(DateSince)).TotalDays)</TotalDays>
+			<TotalSeconds>$([System.TimeSpan]::Parse($([System.DateTime]::Now.ToString("HH:mm:ss"))).TotalSeconds)</TotalSeconds>
+			<Divisor>2</Divisor>
+			<BuildNumber>$([System.Math]::Floor($(TotalDays)))</BuildNumber>
+			<RevisionNumber>$([MSBuild]::Divide($(TotalSeconds),$(Divisor)))</RevisionNumber>
+			<Version>3.0.$(BuildNumber).$(RevisionNumber)</Version>
+		</PropertyGroup>
+
+		<Message Importance="High" Text="★バージョンを生成しました: $(Version)" />
+	</Target>
+	
+	<Target Name="CheckForUncommittedChanges" BeforeTargets="Build">
+		<Exec Command="git status --porcelain" ConsoleToMSBuild="true" IgnoreExitCode="true">
+			<Output TaskParameter="ConsoleOutput" PropertyName="GitStatus" />
+		</Exec>
+
+		<Error Condition=" '$(GitStatus)' != '' " Text="★コミットしていない変更がありますよ！" />
+	</Target>
+</Project>
