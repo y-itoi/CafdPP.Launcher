@@ -5,12 +5,13 @@
 			２秒経過してリビジョンが変わる毎にVSにcsprojファイルの更新が掛かる
 		-->
 		<PropertyGroup>
-			<DateSince>$([System.DateTime]::Parse("2000-01-01"))</DateSince>
+			<DateSince>$([System.DateTime]::new(2000,1,1))</DateSince>
 			<TotalDays>$([System.DateTime]::Now.Subtract($(DateSince)).TotalDays)</TotalDays>
-			<TotalSeconds>$([System.TimeSpan]::Parse($([System.DateTime]::Now.ToString("HH:mm:ss"))).TotalSeconds)</TotalSeconds>
+			<TotalSeconds>$([System.TimeSpan]::FromTicks($([System.DateTime]::Now.TimeOfDay.Ticks)).TotalSeconds)</TotalSeconds>
 			<Divisor>2</Divisor>
+			<TotalSecondsBy5bits>$([MSBuild]::Divide($(TotalSeconds),$(Divisor)))</TotalSecondsBy5bits>
 			<BuildNumber>$([System.Math]::Floor($(TotalDays)))</BuildNumber>
-			<RevisionNumber>$([MSBuild]::Divide($(TotalSeconds),$(Divisor)))</RevisionNumber>
+			<RevisionNumber>$([System.Math]::Floor($(TotalSecondsBy5bits)))</RevisionNumber>
 			<Version>3.0.$(BuildNumber).$(RevisionNumber)</Version>
 		</PropertyGroup>
 
