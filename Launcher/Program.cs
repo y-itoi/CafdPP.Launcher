@@ -188,7 +188,16 @@ partial class Program
                                                 else {
 
                                                     handleCorrect = handle;
-                                                    return ErrCode.OK;
+
+                                                    if (0 != (variationFlags[1] & 0x01)) {
+                                                        // 管理者用ドングルのハンドル返却を優先して、
+                                                        // オペレータ専用だったときはループを続ける。
+                                                        continue;
+                                                    }
+                                                    else {
+
+                                                        return ErrCode.OK;
+                                                    }
                                                 }
                                             }
                                         }
