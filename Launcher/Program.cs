@@ -257,6 +257,11 @@ partial class Program
     string ParseMessages( string message )
     {
         switch (message) {
+            case "WhereAmI": {
+                //「CAFD Plus+」が実行ファイルの場所を使用する
+                return ExecLocation();
+            }
+
             case "Authenticate": {
 
                 //「CAFD Plus+」が生き返った場合に対応する
