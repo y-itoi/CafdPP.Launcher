@@ -32,6 +32,21 @@ partial class Program
         // コンソールが閉じられるまで待機
         _ = Task.Run( Console.ReadLine );
     }
+
+    static void RegistProcessExitedHandler( Process p, Action callback )
+    {
+        // プロセス終了時にイベントを要求する
+        p.EnableRaisingEvents = true;
+
+        void Process_Exited( object? sender, EventArgs e )
+        {
+            // このイベントは一度きり
+            p.Exited -= Process_Exited;
+            // コールバックを処理する
+            callback();
+        }
+        p.Exited += Process_Exited;
+    }
     #endregion(RegistExitedHandler())
 
     #region    MinimiseSelf())
@@ -474,8 +489,7 @@ partial class Program
                     Console.WriteLine( " Done." );
 
                     //「CAFD Plus+」に生命保険を掛ける
-                    this.CafdPP.EnableRaisingEvents = true;
-                    this.CafdPP.Exited += ( sender, e ) => @event.Set();
+                    RegistProcessExitedHandler( this.CafdPP, () => @event.Set() );
 
                     //「CAFD Plus+」が死ぬまで眠る
                     if (!WaitEvent( @event )) {
