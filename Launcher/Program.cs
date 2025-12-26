@@ -12,12 +12,10 @@ Program.Proc();
 
 partial class Program
 {
+    /// <summary>
+    /// コンソールが閉じられたときの処理を登録する
+    /// </summary>
     #region    RegistExitedHandler()
-    delegate bool ConsoleCtrlDelegate( int sig );
-
-    [LibraryImport( "kernel32.dll", SetLastError = true )]
-    private static partial IntPtr SetConsoleCtrlHandler( ConsoleCtrlDelegate Handler, int Add );
-
     static void RegistExitedHandler( Action callback )
     {
         Func<int, bool> handler = sig => {
@@ -33,6 +31,9 @@ partial class Program
         _ = Task.Run( Console.ReadLine );
     }
 
+    /// <summary>
+    /// 指定のプロセスが閉じられたときの処理を登録する
+    /// </summary>
     static void RegistProcessExitedHandler( Process p, Action callback )
     {
         // プロセス終了時にイベントを要求する
@@ -47,15 +48,17 @@ partial class Program
         }
         p.Exited += Process_Exited;
     }
+
+    delegate bool ConsoleCtrlDelegate( int sig );
+
+    [LibraryImport( "kernel32.dll", SetLastError = true )]
+    private static partial IntPtr SetConsoleCtrlHandler( ConsoleCtrlDelegate Handler, int Add );
     #endregion(RegistExitedHandler())
 
+    /// <summary>
+    /// コンソール画面を最小化する
+    /// </summary>
     #region    MinimiseSelf())
-    [LibraryImport( "user32.dll", EntryPoint = "FindWindowW", SetLastError = true, StringMarshalling = StringMarshalling.Utf16 )]
-    private static partial IntPtr FindWindow( IntPtr lpClassName, string lpWindowName );
-
-    [LibraryImport( "user32.dll", SetLastError = true )]
-    private static partial int ShowWindow( IntPtr hWnd, int nCmdShow );
-
     static void MinimiseSelf()
     {
         var hWnd = FindWindow( IntPtr.Zero, Console.Title );
@@ -64,8 +67,17 @@ partial class Program
             ShowWindow( hWnd, 6 );
         }
     }
+
+    [LibraryImport( "user32.dll", EntryPoint = "FindWindowW", SetLastError = true, StringMarshalling = StringMarshalling.Utf16 )]
+    private static partial IntPtr FindWindow( IntPtr lpClassName, string lpWindowName );
+
+    [LibraryImport( "user32.dll", SetLastError = true )]
+    private static partial int ShowWindow( IntPtr hWnd, int nCmdShow );
     #endregion(MinimiseSelf()
 
+    /// <summary>
+    /// 自身が起動した場所を得る
+    /// </summary>
     #region    ExecLocation()
     static string ExecLocation()
     {
@@ -89,6 +101,9 @@ partial class Program
     }
     #endregion(ExecLocation())
 
+    /// <summary>
+    /// 自身に指定されたコマンドライン引数を得る
+    /// </summary>
     #region    Arguments()
     static string[] Arguments()=> Environment.CommandLine
             .Split( '/', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries );
@@ -98,6 +113,7 @@ partial class Program
     /// </summary>
     static bool BeQuiet() => Arguments().Contains( "quiet", StringComparer.OrdinalIgnoreCase );
     #endregion(Arguments())
+
 
 
     /// <summary>
@@ -198,7 +214,7 @@ partial class Program
                                             var minorNumber = Encoding.ASCII.GetString( versionASCII, 6, 2 );
                                             if (int.TryParse( minorNumber, out int minor )) {
 
-                                                // ここで期待されるのは「Ver.3.00.0000」の登録があるドングル
+                                                // ここで期待されるのは「Ver.3.00」の登録があるドングル
                                                 if (major * 100 + minor < 300) { }
                                                 else {
 
@@ -219,9 +235,11 @@ partial class Program
                                     }
                                 }
                             }
-                            retcd = ErrCode.NotFound;
-                            //Console.WriteLine( $"CAFD Plus+ didn't REGISTERD!!" );
+                            if (handleCorrect == IntPtr.Zero) {
+                                //Console.WriteLine( $"CAFD Plus+ didn't REGISTERD!!" );
 
+                                retcd = ErrCode.NotFound;
+                            }
                         }
                         else {
                             //Console.WriteLine( $"GetMem failure by ({retcd})!!" );
