@@ -12,6 +12,10 @@ Program.Proc();
 
 partial class Program
 {
+    const string Target = "CafdPP";
+    const string Author = "NewlyCoJp";
+    const string Product = "CAFD Plus+";
+
     /// <summary>
     /// コンソールが閉じられたときの処理を登録する
     /// </summary>
@@ -429,10 +433,21 @@ partial class Program
                                     this.CafdPP = Process.Start( target );
                                     continue;
                                 }
+                                else {
+                                    // １レベルだけサブフォルダの下も探す
+                                    foreach (var sub in Directory.GetDirectories( startup )) {
+                                        var sarges = Path.Combine( sub, exe );
+                                        if (File.Exists( sarges )) {
+
+                                            this.CafdPP = Process.Start( sarges );
+                                            continue;
+                                        }
+                                    }
+                                }
                             }
 
                             // 2.既定の場所を探す
-                            var def = Path.Combine( @"C:\NewlyCoJp\CafdPP", exe );
+                            var def = Path.Combine( @"C:\", Author, Product, exe );
                             if (File.Exists( def )) {
 
                                 this.CafdPP = Process.Start( def );
@@ -442,7 +457,7 @@ partial class Program
                             // 3.環境ファイルから最後に起動した場所を探す
                             var dat = Environment.GetEnvironmentVariable( "ProgramData" );
                             if (dat != null) {
-                                var cnf = Path.Combine( dat, "NewlyCoJp", app, json );
+                                var cnf = Path.Combine( dat, Author, app, json );
                                 if (File.Exists( cnf )) {
 
                                     var buffer = File.ReadAllText( cnf );
@@ -527,8 +542,6 @@ partial class Program
 
     static void Proc()
     {
-        const string Target = "CafdPP";
-
         // TODO: 環境ファイル「CafdPP.JSON」にアセンブリの場所があるので今ならGUIDは取得してこれるが...
         var guid = "9B49E45A-E9C3-46F5-9CA2-E65BB26AE874";
         using var mutex = new Mutex( true, $"{Target}:{{{guid}}}", out bool createdNew );
