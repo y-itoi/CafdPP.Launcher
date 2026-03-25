@@ -440,8 +440,12 @@ partial class Program
                                         if (File.Exists( sarges )) {
 
                                             this.CafdPP = Process.Start( sarges );
-                                            continue;
+                                            break;
                                         }
+                                    }
+                                    if (this.CafdPP != null) {
+
+                                        continue;
                                     }
                                 }
                             }
