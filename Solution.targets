@@ -23,6 +23,9 @@
 			<Output TaskParameter="ConsoleOutput" PropertyName="GitStatus" />
 		</Exec>
 
+		<!--
+			テストのときコメントアウトする
+		-->
 		<Error Condition=" '$(GitStatus)' != '' " Text="★コミットしていない変更がありますよ！" />
 	</Target>
 </Project>

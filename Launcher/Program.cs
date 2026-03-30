@@ -12,9 +12,9 @@ Program.Proc();
 
 partial class Program
 {
-    const string Target = "CafdPP";
-    const string Author = "NewlyCoJp";
-    const string Product = "CAFD Plus+";
+    const string _Target = "CafdPP";
+    const string _Author = "NewlyCoJp";
+    const string _Product = "CAFD Plus+";
 
     /// <summary>
     /// コンソールが閉じられたときの処理を登録する
@@ -426,32 +426,49 @@ partial class Program
                             // 1.ターゲットが起動していなければ立ち上げる
                             var startup = Path.GetDirectoryName( p );
                             if (startup != null) {
+
+                                var target = "";
+
                                 // このプロセスを起動したexeファイルと同じ場所を探す
-                                var target = Path.Combine( startup, exe );
+                                target = Path.Combine( startup, exe );
                                 if (File.Exists( target )) {
 
                                     this.CafdPP = Process.Start( target );
                                     continue;
                                 }
                                 else {
-                                    // １レベルだけサブフォルダの下も探す
-                                    foreach (var sub in Directory.GetDirectories( startup )) {
-                                        var sarges = Path.Combine( sub, exe );
-                                        if (File.Exists( sarges )) {
+                                    // ｢app｣フォルダがあれば優先して起動する
+                                    target = Path.Combine( startup, "app", exe );
+                                    if (File.Exists( target )) {
 
-                                            this.CafdPP = Process.Start( sarges );
-                                            break;
-                                        }
-                                    }
-                                    if (this.CafdPP != null) {
-
+                                        this.CafdPP = Process.Start( target );
                                         continue;
+                                    }
+                                    else {
+                                        // １レベルだけサブフォルダの下も探す
+                                        var sdi = new DirectoryInfo( startup );
+
+                                        foreach (var di in sdi.GetDirectories()) {
+                                            if (false) { }
+                                            else if (-1 < di.Name.IndexOf( _Target, StringComparison.OrdinalIgnoreCase )) { }
+                                            else if (-1 < di.Name.IndexOf( _Product, StringComparison.OrdinalIgnoreCase )) { }
+                                            else if (-1 < di.Name.IndexOf( "Backup", StringComparison.OrdinalIgnoreCase )) { }
+                                            else {
+                                                var tt = Path.Combine( di.FullName, exe );
+                                                if (File.Exists( tt )) {
+
+                                                    this.CafdPP = Process.Start( tt );
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                        if (this.CafdPP != null) continue;
                                     }
                                 }
                             }
 
                             // 2.既定の場所を探す
-                            var def = Path.Combine( @"C:\", Author, Product, exe );
+                            var def = Path.Combine( @"C:\", _Author, _Product, exe );
                             if (File.Exists( def )) {
 
                                 this.CafdPP = Process.Start( def );
@@ -461,7 +478,7 @@ partial class Program
                             // 3.環境ファイルから最後に起動した場所を探す
                             var dat = Environment.GetEnvironmentVariable( "ProgramData" );
                             if (dat != null) {
-                                var cnf = Path.Combine( dat, Author, app, json );
+                                var cnf = Path.Combine( dat, _Author, app, json );
                                 if (File.Exists( cnf )) {
 
                                     var buffer = File.ReadAllText( cnf );
@@ -548,7 +565,7 @@ partial class Program
     {
         // TODO: 環境ファイル「CafdPP.JSON」にアセンブリの場所があるので今ならGUIDは取得してこれるが...
         var guid = "9B49E45A-E9C3-46F5-9CA2-E65BB26AE874";
-        using var mutex = new Mutex( true, $"{Target}:{{{guid}}}", out bool createdNew );
+        using var mutex = new Mutex( true, $"{_Target}:{{{guid}}}", out bool createdNew );
         if (createdNew) {
 
             Console.WriteLine( "_/ (C) 2025 NEWLY CORPORATION" );
@@ -570,7 +587,7 @@ partial class Program
                 _ = NlPipe.NamedPipeServer.CreatePipeServerAsync( guid, @this.ParseMessages, @this.ct );
 
                 //「CAFD Plus+」を起動して監視する
-                @this.LaunchTarget( Target );
+                @this.LaunchTarget( _Target );
 
             }
             else {
@@ -588,7 +605,7 @@ partial class Program
             Console.WriteLine( "Already running..." );
 
             // 自分はランチャーなので、ターゲットが死んでいるなら起動だけは試す。
-            new Program().LaunchTarget( Target, true );
+            new Program().LaunchTarget( _Target, true );
         }
     }
 }
